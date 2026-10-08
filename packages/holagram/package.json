@@ -32,7 +32,7 @@
     }
   },
   "bin": {
-    "holagram": "./dist/cli.js"
+    "holagram": "dist/cli.js"
   },
   "files": ["dist", "README.md", "logo.svg"],
   "scripts": {
