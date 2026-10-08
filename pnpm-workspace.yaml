@@ -1,0 +1,12 @@
+packages:
+  - packages/*
+  - playground
+  - docs
+allowBuilds:
+  esbuild: true
+  "@parcel/watcher": false
+  "@swc/core": true
+  sharp: false
+overrides:
+  # 1.16.13 materializes its native binding into a cache dir it refuses on some Windows ACLs.
+  "@swc/core": 1.16.2

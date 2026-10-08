@@ -1,0 +1,151 @@
+`<Holagram />` es un componente de cliente. Móntalo una sola vez, en tu layout raíz, para que la conversación siga al visitante por todas las páginas.
+
+```tsx title="app/layout.tsx"
+import { Holagram } from '@angelitolm/holagram'
+
+<Holagram owner={{ name: 'Ana', avatar: '/me.jpg', status: 'Normalmente respondo en unas horas' }} />
+```
+
+## Props
+
+| Prop | Tipo | Por defecto | |
+| --- | --- | --- | --- |
+| `owner` | `{ name, avatar?, status? }` | obligatoria | Se muestra en la cabecera y sobre tus respuestas. `avatar` es la URL de una imagen; sin ella, se usa la inicial de `name`. |
+| `topics` | `HolagramTopic[]` | una opción "Start a conversation" | El menú tras el nombre y el correo. |
+| `api` | `string` | `'/api/holagram'` | Ruta base del route handler. |
+| `position` | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` | Esquina para el botón y el chat. |
+| `launcher` | `'always' \| 'started'` | `'always'` | `'started'` oculta el botón redondo hasta que haya una conversación a la que volver; abre el chat desde tu propio botón. |
+| `launcherIcon` | `ReactNode` | icono de chat-bot en un botón redondo | Tu propio lanzador: un avatar, una imagen, un icono. Al pulsarlo se abre el chat. |
+| `launcherStyle` | `CSSProperties` | | Estilos inline del lanzador (el botón redondo, o el círculo alrededor de `launcherIcon`). |
+| `dismissible` | `boolean` | `false` | Añade al lanzador una pequeña × que lo oculta durante la sesión del navegador. |
+| `onLoad` | `() => void` | | El widget está listo, con su conversación guardada cargada. |
+| `onShow` | `() => void` | | El chat se abrió. |
+| `onClose` | `() => void` | | El chat se cerró. |
+| `onDismiss` | `() => void` | | El visitante ocultó el lanzador con su ×. |
+| `theme` | `'auto' \| 'light' \| 'dark'` | `'auto'` | `'auto'` sigue al sistema operativo. |
+| `text` | `Partial<HolagramText>` | inglés | Todas las cadenas que muestra el widget. |
+
+## Temas
+
+Cada tema es un botón. Un tema **sin** `reply` abre una conversación contigo en Telegram: el visitante recibe el correo de verificación, e `intro` es lo que dice el chat una vez conectado. Su `label` es lo que ves en Telegram.
+
+Un tema **con** `reply` se responde directamente en el widget, con enlaces opcionales, y nunca te llega:
+
+```tsx
+<Holagram
+  owner={{ name: 'Ana' }}
+  topics={[
+    { id: 'hire', label: '💼 Quiero contratarte', intro: 'Cuéntame qué necesitas, tus plazos y un presupuesto aproximado.' },
+    { id: 'proposal', label: '🚀 Tengo una propuesta de proyecto' },
+    {
+      id: 'work',
+      label: '📁 Ver mi trabajo',
+      reply: 'Aquí tienes algunos proyectos recientes.',
+      links: [{ href: '/portfolio', label: 'Portfolio' }],
+    },
+  ]}
+/>
+```
+
+## Tu propio botón de "Hablemos"
+
+`openHolagram()` abre el chat desde cualquier sitio: un botón de la barra de navegación, un enlace en el pie de página, una llamada a la acción.
+
+```tsx title="components/lets-talk.tsx"
+'use client'
+import { openHolagram } from '@angelitolm/holagram'
+
+export const LetsTalk = () => <button onClick={openHolagram}>Hablemos</button>
+```
+
+Combínalo con `launcher="started"` para mantener la esquina limpia hasta que alguien inicie un chat.
+
+## Tu propio icono del lanzador
+
+Por defecto el lanzador es un botón redondo con un icono de chat-bot y un badge verde de "en línea". `launcherIcon` pone tu propio contenido en su lugar, por ejemplo un avatar:
+
+```tsx
+<Holagram owner={{ name: 'Ana' }} launcherIcon={<img src="/me.jpg" alt="Chatea con Ana" width={54} height={54} />} />
+```
+
+Va dentro de un círculo con borde en el degradado de la marca y mantiene el badge verde. Un clic en cualquier parte abre el chat, y un punto rojo marca las respuestas sin leer. Ajusta el tamaño del círculo con `--hg-launcher-size` (por defecto `60px`, el borde ocupa 3px por lado) y su fondo con `--hg-ring-bg` (blanco en tema claro, oscuro en tema oscuro). El contenido interactivo (un `<button>`) funciona: no queda anidado dentro de otro botón.
+
+## Estilos del lanzador
+
+El widget vive en un shadow root, así que tus clases CSS no llegan al botón. Pásale estilos inline con `launcherStyle`:
+
+```tsx
+<Holagram owner={{ name: 'Ana' }} launcherStyle={{ background: '#111', boxShadow: 'none' }} />
+```
+
+Para los colores de marca de todo el widget, usa las variables CSS de [Colores](#colores).
+
+## Dejar que el visitante lo oculte
+
+Con `dismissible`, aparece una pequeña × en la esquina superior derecha del lanzador (al pasar el ratón, o siempre en pantallas táctiles). Oculta el lanzador durante el resto de la sesión del navegador. `openHolagram()` sigue abriendo el chat, y una respuesta nueva tuya hace que el lanzador vuelva. `closeHolagram()` cierra el chat desde tu código.
+
+## Eventos
+
+```tsx
+<Holagram
+  owner={{ name: 'Ana' }}
+  dismissible
+  onLoad={() => console.log('listo')}
+  onShow={() => analytics.track('chat_open')}
+  onClose={() => analytics.track('chat_close')}
+  onDismiss={() => analytics.track('chat_dismiss')}
+/>
+```
+
+`onShow` y `onClose` se disparan en cada cambio, lo cause lo que lo cause: el lanzador, la × de la cabecera, `openHolagram()`, `closeHolagram()` o el enlace del email. `onLoad` se dispara una vez por montaje.
+
+## Colores
+
+El widget vive en un shadow root: tu CSS no puede romperlo y su CSS no se filtra a tu página. Sus colores de marca son variables CSS que puedes definir desde tu propia hoja de estilos:
+
+```css title="app/globals.css"
+[data-holagram] {
+  --hg-from: #a855f7; /* inicio del degradado: botón, burbujas de tu visitante */
+  --hg-to: #3b82f6;   /* fin del degradado */
+  --hg-accent: #a855f7; /* tus respuestas, anillos de foco, chips */
+}
+```
+
+Si tu sitio alterna el modo oscuro con una clase (next-themes y similares), pasa `theme` desde ahí para que el widget coincida con la página en lugar de con el sistema operativo.
+
+## Textos y traducciones
+
+Todas las cadenas están en `text`. Para español hay un conjunto ya preparado:
+
+```tsx
+import { Holagram, es } from '@angelitolm/holagram'
+
+<Holagram owner={{ name: 'Ana' }} text={es} />
+```
+
+O sobrescribe solo lo que necesites. Las cadenas que mencionan a alguien son funciones:
+
+```tsx
+<Holagram
+  owner={{ name: 'Ana' }}
+  text={{
+    greeting: (owner) => `¡Hola! Soy el asistente de ${owner}.`,
+    identifyTitle: '¿Quién eres?',
+    offline: 'El chat está desconectado. Escríbeme a ana@example.com.',
+    placeholder: { chat: 'Escribe aquí…' },
+  }}
+/>
+```
+
+`TEXT` (exportado) tiene todas las claves con su valor por defecto en inglés.
+
+## Cómo se guarda la conversación
+
+- Vive en el `localStorage` del visitante, así que sobrevive a las recargas y a cerrar la pestaña. El botón ↻ de la cabecera inicia una nueva.
+- Otra pestaña del mismo navegador (por ejemplo, la que abrió el enlace del correo) se mantiene sincronizada.
+- Las respuestas nuevas se consultan por polling: cada 4 segundos con el chat abierto, cada 20 con él cerrado, y nunca mientras la pestaña está oculta. Un punto en el botón marca las respuestas sin leer.
+- Las conversaciones caducan tras 30 días sin mensajes.
+
+## Next.js y otros frameworks
+
+El componente tiene `'use client'` y solo necesita React 18 o 19, así que también funciona en Vite, Remix o islas de Astro. Apunta `api` a donde esté tu handler del servidor.

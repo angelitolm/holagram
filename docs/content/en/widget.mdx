@@ -1,0 +1,151 @@
+`<Holagram />` is a client component. Mount it once, in your root layout, so the conversation follows the visitor across pages.
+
+```tsx title="app/layout.tsx"
+import { Holagram } from '@angelitolm/holagram'
+
+<Holagram owner={{ name: 'Ana', avatar: '/me.jpg', status: 'Usually replies within a few hours' }} />
+```
+
+## Props
+
+| Prop | Type | Default | |
+| --- | --- | --- | --- |
+| `owner` | `{ name, avatar?, status? }` | required | Shown in the header and above your replies. `avatar` is an image URL; without it, the initial of `name`. |
+| `topics` | `HolagramTopic[]` | one "Start a conversation" option | The menu after name and email. |
+| `api` | `string` | `'/api/holagram'` | Base path of the route handler. |
+| `position` | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` | Corner for the button and the chat. |
+| `launcher` | `'always' \| 'started'` | `'always'` | `'started'` hides the round button until there is a conversation to go back to; open the chat from your own button. |
+| `launcherIcon` | `ReactNode` | chat-bot icon in a round button | Your own launcher: an avatar, an image, an icon. Clicking it opens the chat. |
+| `launcherStyle` | `CSSProperties` | | Inline styles for the launcher (the round button, or the circle around `launcherIcon`). |
+| `dismissible` | `boolean` | `false` | Adds a small × to the launcher that hides it for the browser session. |
+| `onLoad` | `() => void` | | The widget is ready, with its saved conversation loaded. |
+| `onShow` | `() => void` | | The chat opened. |
+| `onClose` | `() => void` | | The chat closed. |
+| `onDismiss` | `() => void` | | The visitor hid the launcher with its ×. |
+| `theme` | `'auto' \| 'light' \| 'dark'` | `'auto'` | `'auto'` follows the OS. |
+| `text` | `Partial<HolagramText>` | English | Every string the widget shows. |
+
+## Topics
+
+Each topic is a button. A topic **without** `reply` opens a conversation with you on Telegram: the visitor gets the verification email, and `intro` is what the chat says once they're connected. Its `label` is what you see in Telegram.
+
+A topic **with** `reply` is answered right in the widget, with optional links, and never reaches you:
+
+```tsx
+<Holagram
+  owner={{ name: 'Ana' }}
+  topics={[
+    { id: 'hire', label: '💼 I want to hire you', intro: 'Tell me what you need, your timeline and a rough budget.' },
+    { id: 'proposal', label: '🚀 I have a project proposal' },
+    {
+      id: 'work',
+      label: '📁 See my work',
+      reply: 'Here are a few recent projects.',
+      links: [{ href: '/portfolio', label: 'Portfolio' }],
+    },
+  ]}
+/>
+```
+
+## Your own "Let's talk" button
+
+`openHolagram()` opens the chat from anywhere: a navbar button, a link in a footer, a call to action.
+
+```tsx title="components/lets-talk.tsx"
+'use client'
+import { openHolagram } from '@angelitolm/holagram'
+
+export const LetsTalk = () => <button onClick={openHolagram}>Let's talk</button>
+```
+
+Combine it with `launcher="started"` to keep the corner clean until someone starts a chat.
+
+## Your own launcher icon
+
+By default the launcher is a round button with a chat-bot icon and a green "online" badge. `launcherIcon` puts your own content in its place, an avatar for example:
+
+```tsx
+<Holagram owner={{ name: 'Ana' }} launcherIcon={<img src="/me.jpg" alt="Chat with Ana" width={54} height={54} />} />
+```
+
+It sits in a circle with a brand-gradient ring and keeps the green badge. A click anywhere on it opens the chat, and a red dot marks unread replies. Size the circle with `--hg-launcher-size` (default `60px`, the border takes 3px each side) and its background with `--hg-ring-bg` (white in the light theme, dark in the dark one). Interactive content (a `<button>`) is fine: it isn't nested inside another button.
+
+## Style the launcher
+
+The widget lives in a shadow root, so your CSS classes can't reach the button. Pass inline styles with `launcherStyle`:
+
+```tsx
+<Holagram owner={{ name: 'Ana' }} launcherStyle={{ background: '#111', boxShadow: 'none' }} />
+```
+
+For the brand colors of the whole widget, use the CSS variables in [Colors](#colors).
+
+## Let visitors hide it
+
+With `dismissible`, a small × appears on the launcher's top-right corner (on hover with a mouse, always on touch screens). It hides the launcher for the rest of the browser session. `openHolagram()` still opens the chat, and a new reply from you brings the launcher back. `closeHolagram()` closes the chat from your code.
+
+## Events
+
+```tsx
+<Holagram
+  owner={{ name: 'Ana' }}
+  dismissible
+  onLoad={() => console.log('ready')}
+  onShow={() => analytics.track('chat_open')}
+  onClose={() => analytics.track('chat_close')}
+  onDismiss={() => analytics.track('chat_dismiss')}
+/>
+```
+
+`onShow` and `onClose` fire on every change, whatever caused it: the launcher, the × in the header, `openHolagram()`, `closeHolagram()` or the email link. `onLoad` fires once per mount.
+
+## Colors
+
+The widget lives in a shadow root: your CSS can't break it and its CSS can't leak into your page. Its brand colors are CSS variables you can set from your own stylesheet:
+
+```css title="app/globals.css"
+[data-holagram] {
+  --hg-from: #a855f7; /* gradient start: button, your visitor's bubbles */
+  --hg-to: #3b82f6;   /* gradient end */
+  --hg-accent: #a855f7; /* your replies, focus rings, chips */
+}
+```
+
+If your site toggles dark mode with a class (next-themes and similar), pass `theme` from it so the widget matches the page instead of the OS.
+
+## Text and translations
+
+Every string is in `text`. For Spanish there's a ready-made set:
+
+```tsx
+import { Holagram, es } from '@angelitolm/holagram'
+
+<Holagram owner={{ name: 'Ana' }} text={es} />
+```
+
+Or override only what you need. Strings that mention someone are functions:
+
+```tsx
+<Holagram
+  owner={{ name: 'Ana' }}
+  text={{
+    greeting: (owner) => `Hey! I'm ${owner}'s assistant.`,
+    identifyTitle: 'Who are you?',
+    offline: 'The chat is offline. Email me at ana@example.com instead.',
+    placeholder: { chat: 'Type here…' },
+  }}
+/>
+```
+
+`TEXT` (exported) has every key with its English default.
+
+## How the conversation is kept
+
+- It lives in the visitor's `localStorage`, so it survives reloads and closing the tab. The ↻ button in the header starts a new one.
+- Another tab of the same browser (for example, the one the email link opened) stays in sync.
+- New replies are polled: every 4 seconds with the chat open, every 20 with it closed, never while the tab is hidden. A dot on the button marks unread replies.
+- Conversations expire after 30 days without messages.
+
+## Next.js and other frameworks
+
+The component has `'use client'` and only needs React 18 or 19, so it also works in Vite, Remix or Astro islands. Point `api` to wherever your server handler lives.

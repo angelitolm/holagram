@@ -1,0 +1,74 @@
+```ts title="app/api/holagram/[action]/route.ts"
+import { createHolagram } from '@angelitolm/holagram/server'
+
+export const { GET, POST } = createHolagram({
+  ownerName: 'Ana',
+})
+```
+
+`createHolagram()` devuelve un handler `GET` y otro `POST` de tipo `(req: Request) => Promise<Response>`. Leen la acción del **último segmento de la URL**, por eso la ruta de Next es un segmento dinámico `[action]`.
+
+## Opciones
+
+| Opción | Por defecto | |
+| --- | --- | --- |
+| `ownerName` | `'us'` | Con quién habla el visitante, en el correo de verificación. |
+| `emailFrom` | `HOLAGRAM_EMAIL_FROM` | Remitente del correo de verificación. |
+| `siteUrl` | `SITE_URL`, luego la URL de producción de Vercel, luego `localhost` | Origen del enlace de verificación. Mira [Verificación del correo](./email#el-enlace). |
+| `email` | correo corto en inglés | `({ name, link, ownerName }) => ({ subject, text, html })`. |
+| `prefix` | `'holagram'` | Prefijo de todas las claves de Redis, para compartir base de datos con otras apps. |
+
+## Variables de entorno
+
+| Variable | |
+| --- | --- |
+| `TELEGRAM_BOT_TOKEN` | De @BotFather. |
+| `TELEGRAM_CHAT_ID` | Tu chat privado con el bot: `npx holagram chat-id`. |
+| `TELEGRAM_WEBHOOK_SECRET` | Cualquier cadena de letras, números, `_` y `-`: `npx holagram secret`. |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | REST de Upstash Redis. `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` también funcionan. |
+| `RESEND_API_KEY` | De Resend. |
+| `HOLAGRAM_EMAIL_FROM` | Salvo que pases `emailFrom`. |
+| `SITE_URL` | Opcional. |
+
+Si falta alguna, los endpoints responden `503` (el webhook, `401`) y el widget indica que está desconectado. `POST /start` también lista los **nombres** de las variables que faltan (nunca sus valores), así que puedes comprobarlo desde la pestaña de red del navegador:
+
+```json
+{ "error": "not_configured", "missing": ["RESEND_API_KEY"] }
+```
+
+## Endpoints
+
+| Endpoint | |
+| --- | --- |
+| `POST /start` | `{ name, email, topic, path }`: envía el correo de verificación. |
+| `POST /verify` | `{ token }`: consume el enlace, abre la conversación y te avisa por Telegram. Devuelve `{ sid, name, email, topic }`. |
+| `GET /messages?sid=&after=` | Los mensajes de la conversación a partir del índice `after`. |
+| `POST /messages` | `{ sid, text }`: un mensaje del visitante, reenviado a Telegram. |
+| `POST /webhook` | El webhook de Telegram. Requiere la cabecera del secreto. |
+
+Los errores son `{ error }` con `400 invalid`, `404 not_found`, `410 expired`, `429 rate_limited`, `502 failed` o `503 not_configured`.
+
+## Qué guarda
+
+Todo en Upstash Redis, bajo `prefix`:
+
+| Clave | Valor | Caduca |
+| --- | --- | --- |
+| `holagram:verify:<sha256(token)>` | nombre, correo, tema | 30 min, o al usarse |
+| `holagram:<sid>` | la conversación: nombre, correo, tema, fecha de creación | 30 días tras el último mensaje |
+| `holagram:<sid>:msgs` | lista de `{ from, text, at }` | 30 días tras el último mensaje |
+| `holagram:tg:<message_id>` | el `sid` al que pertenece ese mensaje de Telegram | 30 días |
+| `holagram:rl:<key>` | contadores de límite de uso | 1 hora |
+
+## Otros runtimes
+
+Los handlers solo usan `fetch`, `Request`, `Response` y Web Crypto. En Hono, por ejemplo:
+
+```ts
+import { Hono } from 'hono'
+import { createHolagram } from '@angelitolm/holagram/server'
+
+const holagram = createHolagram({ ownerName: 'Ana' })
+const app = new Hono()
+app.all('/api/holagram/:action', (c) => holagram.POST(c.req.raw)) // GET y POST son el mismo handler
+```

@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "title": "Documentación de holagram",
+    "description": "Un widget de chat para tu web que te llega a Telegram: el visitante confirma su email, respondes desde el móvil y cada respuesta vuelve solo a esa persona."
+  },
+  "ui": {
+    "docs": "Docs",
+    "menu": "Menú",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "edit": "Editar esta página en GitHub",
+    "theme": "Cambiar tema",
+    "language": "Idioma",
+    "github": "GitHub",
+    "license": "Publicado bajo la licencia MIT.",
+    "demo": "Demo en vivo"
+  },
+  "sections": {
+    "start": "Empezar",
+    "guide": "Guía",
+    "reference": "Referencia",
+    "project": "Proyecto"
+  },
+  "pages": {
+    "index": {
+      "title": "Introducción",
+      "description": "Qué es holagram, cómo funciona y qué necesitas."
+    },
+    "getting-started": {
+      "title": "Primeros pasos",
+      "description": "De cero a un chat en tu web que te llega a Telegram, en cinco pasos."
+    },
+    "telegram": {
+      "title": "Telegram",
+      "description": "Crea el bot, encuentra tu chat id, registra el webhook y responde a los visitantes."
+    },
+    "email": {
+      "title": "Verificación por email",
+      "description": "Configurar Resend, el enlace de un solo uso y personalizar el correo."
+    },
+    "widget": {
+      "title": "El widget",
+      "description": "Props de <Holagram />: opciones, lanzador, tema, colores, textos y abrirlo desde tu propio botón."
+    },
+    "server": {
+      "title": "El servidor",
+      "description": "createHolagram(): el route handler, sus opciones, sus endpoints y qué guarda en Redis."
+    },
+    "security": {
+      "title": "Seguridad",
+      "description": "Cómo holagram verifica a los visitantes, protege el webhook y limita el abuso."
+    },
+    "troubleshooting": {
+      "title": "Solución de problemas y FAQ",
+      "description": "Los errores más probables al configurarlo y cómo resolverlos."
+    },
+    "contributing": {
+      "title": "Contribuir",
+      "description": "Estructura del monorepo, el playground, los tests, esta documentación y las publicaciones."
+    }
+  },
+  "demo": {
+    "title": "Demo en vivo",
+    "description": "El widget real sobre un backend simulado. Abre el chat y recorre el flujo completo.",
+    "simulated": "Todo esto se ejecuta en tu navegador: no se envía ningún correo ni llega nada a Telegram. El email se verifica solo al cabo de un momento y cada mensaje recibe una respuesta automática.",
+    "sidebarCta": "Prueba la demo en vivo",
+    "tryTitle": "Pruébalo",
+    "try": {
+      "open": "Abre el botón redondo de la esquina inferior derecha e identifícate: nombre y email.",
+      "email": "Pon cualquier email y elige “Quiero contratarte” u “Otra pregunta”.",
+      "verify": "En tu app, el visitante abre el enlace de su correo; aquí se verifica solo.",
+      "reply": "Escribe un mensaje: en tu app te llega a Telegram y tu respuesta aparece aquí."
+    },
+    "reply": "👋 Esta es una respuesta simulada. En tu app, es lo que escribes en Telegram.",
+    "topics": {
+      "hire": "💼 Quiero contratarte",
+      "hireIntro": "¡Genial! Cuéntame qué necesitas, plazos y un presupuesto aproximado.",
+      "question": "💬 Otra pregunta",
+      "docs": "📚 ¿Cómo funciona?",
+      "docsReply": "Las opciones como esta se responden aquí mismo, sin molestarte en Telegram."
+    },
+    "status": "Demo · responde en un segundo"
+  }
+}

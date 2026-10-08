@@ -1,0 +1,14 @@
+{
+  "name": "holagram-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm --filter @angelitolm/holagram build",
+    "test": "pnpm --filter @angelitolm/holagram test",
+    "pack": "pnpm build && cd packages/holagram && pnpm pack --pack-destination ../../.tarballs"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.18"
+  }
+}

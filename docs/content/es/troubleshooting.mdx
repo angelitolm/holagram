@@ -1,0 +1,41 @@
+## El chat dice que está desconectado
+
+La ruta responde `503` cuando falta una variable. Abre la pestaña de red de tu navegador, busca la petición `start` y lee `missing` en la respuesta: lista los nombres de las variables que faltan.
+
+En Vercel, las variables se aplican **al desplegar**: vuelve a desplegar tras añadirlas. Y revisa el entorno: un preview no ve las variables que solo definiste para Production.
+
+## `Telegram: Bad Request: chat not found`
+
+Un bot **no puede escribirte primero**. Abre tu bot en Telegram y pulsa **Start**. Comprueba también que `TELEGRAM_CHAT_ID` es el id de tu chat privado con el bot (`npx holagram chat-id`), y no el id del propio bot.
+
+## Los mensajes llegan a Telegram, pero mis respuestas no llegan a la web
+
+- **Responde** al mensaje del visitante (desliza ↩️). Un mensaje normal no tiene destinatario, y el bot te dice "Not delivered".
+- El webhook debe estar registrado contra una URL **pública**: `npx holagram status` debería mostrar tu URL y ningún `last_error_message`. Telegram no puede llamar a `localhost`.
+- `TELEGRAM_WEBHOOK_SECRET` en tu hosting debe ser el mismo que registraste. Si lo cambias, ejecuta `npx holagram webhook` otra vez.
+
+## `Resend: 403` o el correo nunca llega
+
+- `HOLAGRAM_EMAIL_FROM` debe usar un dominio que hayas verificado en Resend.
+- Con Cloudflare, los registros DNS de Resend deben estar en **DNS only** (nube gris), sin proxy.
+- Pídele al visitante que revise la carpeta de spam. El widget tiene un botón "Reenviar el correo".
+
+## El enlace dice que no es válido o que ha caducado
+
+Caduca a los 30 minutos y funciona una sola vez. Si lo abres dos veces, la segunda muestra el mensaje de caducado, pero la conversación de la primera apertura ya está en el chat.
+
+## `getaddrinfo ENOTFOUND xxx.upstash.io"`
+
+Fíjate en la comilla al final del host: la variable tiene una `"` suelta en tu `.env`. Comprueba que los valores no lleven comillas sueltas.
+
+## Las respuestas aparecen en mi chat local
+
+Telegram envía cada respuesta a tu webhook de producción. Si tu `.env.local` local usa la misma base de datos Redis que producción, esas respuestas también acaban en las conversaciones locales. Usa una base de datos distinta para desarrollo si te molesta.
+
+## ¿Puedo usarlo sin Next.js?
+
+Sí. El servidor es un handler Web `Request → Response` (mira [El servidor](./server#otros-runtimes)) y el widget solo necesita React.
+
+## ¿Pueden responder varias personas?
+
+Todavía no: holagram reenvía a un único chat, `TELEGRAM_CHAT_ID`. Cada mensaje sigue vinculado a su visitante, así que puedes compartir esa única cuenta con un compañero.

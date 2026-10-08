@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "title": "holagram docs",
+    "description": "A chat widget for your website that reaches you on Telegram: visitors confirm their email, you reply from your phone, and each answer goes back only to that visitor."
+  },
+  "ui": {
+    "docs": "Docs",
+    "menu": "Menu",
+    "previous": "Previous",
+    "next": "Next",
+    "edit": "Edit this page on GitHub",
+    "theme": "Toggle theme",
+    "language": "Language",
+    "github": "GitHub",
+    "license": "Released under the MIT License.",
+    "demo": "Live demo"
+  },
+  "sections": {
+    "start": "Get started",
+    "guide": "Guide",
+    "reference": "Reference",
+    "project": "Project"
+  },
+  "pages": {
+    "index": {
+      "title": "Introduction",
+      "description": "What holagram is, how it works and what you need."
+    },
+    "getting-started": {
+      "title": "Getting started",
+      "description": "From zero to a chat on your site that reaches your Telegram, in five steps."
+    },
+    "telegram": {
+      "title": "Telegram",
+      "description": "Create the bot, find your chat id, register the webhook and reply to visitors."
+    },
+    "email": {
+      "title": "Email verification",
+      "description": "Resend setup, the one-time link and customizing the email."
+    },
+    "widget": {
+      "title": "The widget",
+      "description": "<Holagram /> props: topics, launcher, theme, colors, text, and opening it from your own button."
+    },
+    "server": {
+      "title": "The server",
+      "description": "createHolagram(): the route handler, its options, its endpoints and what it stores in Redis."
+    },
+    "security": {
+      "title": "Security",
+      "description": "How holagram verifies visitors, protects the webhook and limits abuse."
+    },
+    "troubleshooting": {
+      "title": "Troubleshooting & FAQ",
+      "description": "The errors you are most likely to hit while setting it up, and their fixes."
+    },
+    "contributing": {
+      "title": "Contributing",
+      "description": "Monorepo layout, the playground, tests, these docs and releasing."
+    }
+  },
+  "demo": {
+    "title": "Live demo",
+    "description": "The real widget on a simulated backend. Open the chat and go through the whole flow.",
+    "simulated": "Everything here runs in your browser: no email is sent and nothing reaches Telegram. The email is verified by itself after a moment and every message gets an automatic reply.",
+    "sidebarCta": "Try the live demo",
+    "tryTitle": "Try it",
+    "try": {
+      "open": "Open the round button in the bottom-right corner and identify yourself: name and email.",
+      "email": "Enter any email and pick “I want to hire you” or “Another question”.",
+      "verify": "In your app, the visitor opens the link in their email; here it is verified by itself.",
+      "reply": "Write a message: in your app it reaches your Telegram, and your reply shows up here."
+    },
+    "reply": "👋 This is a simulated reply. In your app, it's what you write in Telegram.",
+    "topics": {
+      "hire": "💼 I want to hire you",
+      "hireIntro": "Great! Tell me what you need, your timeline and a rough budget.",
+      "question": "💬 Another question",
+      "docs": "📚 How does it work?",
+      "docsReply": "Options like this one are answered right here, without bothering you on Telegram."
+    },
+    "status": "Demo · replies in a second"
+  }
+}

@@ -1,0 +1,46 @@
+## Create the bot
+
+1. Open [@BotFather](https://t.me/BotFather) and send `/newbot`.
+2. Pick a name and a username ending in `bot`.
+3. Copy the token into `TELEGRAM_BOT_TOKEN`.
+
+## Find your chat id
+
+A bot **can't write to you first**: open your bot in Telegram and press **Start**. Then:
+
+```bash
+npx holagram chat-id
+```
+
+It lists the chats that wrote to your bot. Copy the id of your private chat into `TELEGRAM_CHAT_ID`. The CLI reads `.env.local` and `.env` from the current folder.
+
+<Callout type="warning" title="getUpdates and webhooks don't mix">
+  Telegram only answers `getUpdates` while no webhook is set. If `chat-id` fails after you registered one, run `npx holagram webhook --delete`, then `chat-id`, then register the webhook again.
+</Callout>
+
+## Register the webhook
+
+Your replies reach your site through a webhook. Generate a secret, set it as `TELEGRAM_WEBHOOK_SECRET` in your host, deploy, and register:
+
+```bash
+npx holagram secret
+npx holagram webhook https://your-site.com
+```
+
+This calls `setWebhook` with `https://your-site.com/api/holagram/webhook`, your secret and `allowed_updates: ["message"]`. If your route lives elsewhere, pass the full URL ending in `/webhook`. `npx holagram status` shows what Telegram has registered: your URL, `pending_update_count` and the last error, if any.
+
+You do this once per site, and again only if the URL or the secret change.
+
+## Replying to visitors
+
+Everything happens in your private chat with the bot:
+
+- A new conversation arrives as **🆕 New chat #a1b2c3** with the topic, name and email.
+- Each visitor message arrives as **💬 #a1b2c3 · Name**.
+- To answer, **reply** to any of those messages (swipe ↩️ on mobile, or right click → Reply). The `#a1b2c3` tells you which visitor it is.
+- You can also reply to your own earlier answers in the thread: they're linked to the same visitor.
+- A message that isn't a reply can't be delivered, and the bot tells you so.
+
+A command (a message starting with `/`, like `/start`) gets a short "connected" confirmation instead.
+
+Replies are plain text: Telegram formatting, photos and stickers don't reach the visitor.

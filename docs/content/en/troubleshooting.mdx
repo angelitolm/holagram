@@ -1,0 +1,41 @@
+## The chat says it's offline
+
+The route answers `503` when a variable is missing. Open your browser's network tab, find the `start` request and read `missing` in the response: it lists the names of the missing variables.
+
+On Vercel, variables apply **on deploy**: redeploy after adding them. And check the environment: a preview doesn't see variables you only set for Production.
+
+## `Telegram: Bad Request: chat not found`
+
+A bot **can't write to you first**. Open your bot in Telegram and press **Start**. Also check that `TELEGRAM_CHAT_ID` is the id of your private chat with the bot (`npx holagram chat-id`), not the bot's own id.
+
+## Messages reach Telegram, but my replies don't reach the web
+
+- **Reply** to the visitor's message (swipe ↩️). A plain message has no recipient, and the bot tells you "Not delivered".
+- The webhook must be registered against a **public** URL: `npx holagram status` should show your URL and no `last_error_message`. Telegram can't call `localhost`.
+- `TELEGRAM_WEBHOOK_SECRET` in your host must be the same one you registered. If you change it, run `npx holagram webhook` again.
+
+## `Resend: 403` or the email never arrives
+
+- `HOLAGRAM_EMAIL_FROM` must use a domain you verified in Resend.
+- With Cloudflare, the Resend DNS records must be **DNS only** (grey cloud), not proxied.
+- Ask the visitor to check spam. The widget has a "Resend the email" button.
+
+## The link says it's invalid or expired
+
+It expires after 30 minutes and works once. Opening it twice shows the expired message the second time, but the conversation from the first open is already in the chat.
+
+## `getaddrinfo ENOTFOUND xxx.upstash.io"`
+
+Note the quote at the end of the host: the variable has a stray `"` in your `.env`. Check that values don't carry loose quotes.
+
+## Replies show up in my local chat
+
+Telegram sends every reply to your production webhook. If your local `.env.local` uses the same Redis database as production, those replies land in local conversations too. Use a separate database for development if that bothers you.
+
+## Can I use it without Next.js?
+
+Yes. The server is a Web `Request → Response` handler (see [The server](./server#other-runtimes)) and the widget only needs React.
+
+## Can several people answer?
+
+Not yet: holagram forwards to one chat, `TELEGRAM_CHAT_ID`. Every message stays linked to its visitor, so you can share that one account with a teammate.
