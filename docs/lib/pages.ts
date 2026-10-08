@@ -70,5 +70,5 @@ export async function loadPage(locale: Locale, slug: Slug): Promise<ComponentTyp
 }
 
 export const REPO = 'https://github.com/angelitolm/holagram'
-export const REPO_PUBLIC = false // true once the GitHub repo is public
+export const REPO_PUBLIC = true
 export const editUrl = (locale: Locale, slug: Slug) => `${REPO}/edit/main/docs/content/${locale}/${slug}.mdx`
