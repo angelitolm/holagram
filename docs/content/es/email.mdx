@@ -1,0 +1,46 @@
+Antes de que se abra una conversación, el visitante confirma su correo con un enlace de un solo uso. Sin esto, cualquiera podría escribirte haciéndose pasar por otra persona, y acabarías respondiendo a una bandeja de entrada que no es suya.
+
+## Configura Resend
+
+1. Crea una cuenta en [resend.com](https://resend.com) y añade tu dominio.
+2. Crea los registros DNS que te muestra (SPF, DKIM). En Cloudflare, ponlos en **DNS only**, sin proxy.
+3. Genera una API key: `RESEND_API_KEY`.
+4. Define el remitente: `HOLAGRAM_EMAIL_FROM="Ana <chat@your-domain.com>"`, con el dominio que verificaste.
+
+## El enlace
+
+El enlace es `https://your-site.com/<page>?holagram_token=…`. El visitante vuelve a la página donde empezó el chat; el widget quita el token de la URL, lo verifica y abre la conversación. El enlace caduca a los **30 minutos** y funciona **una sola vez**.
+
+El origen del enlace es fijo, nunca se toma de la cabecera `Host` de la petición. Se obtiene, por orden, de:
+
+1. `siteUrl` en `createHolagram()`.
+2. La variable de entorno `SITE_URL`.
+3. `https://` + `VERCEL_PROJECT_PRODUCTION_URL` (la define Vercel).
+4. `http://localhost:` + `PORT` (3000 por defecto), para desarrollo local.
+
+<Callout type="warning" title="Despliegues de preview">
+  En un preview de Vercel el enlace apunta a tu dominio de producción (paso 3). Define `SITE_URL` para los previews si pruebas el flujo ahí.
+</Callout>
+
+Si el visitante abre el enlace en otra pestaña del mismo navegador, el chat de la pestaña original lo sigue (la conversación vive en `localStorage`). En otro dispositivo, la conversación se abre en ese dispositivo.
+
+## Personaliza el correo
+
+El correo por defecto es corto y está en inglés. Pasa `email` para escribir el tuyo:
+
+```ts title="app/api/holagram/[action]/route.ts"
+import { createHolagram } from '@angelitolm/holagram/server'
+
+const escape = (v: string) => v.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+
+export const { GET, POST } = createHolagram({
+  ownerName: 'Ana',
+  email: ({ name, link, ownerName }) => ({
+    subject: `Confirma tu email para hablar con ${ownerName}`,
+    text: `Hola ${name}, confirma tu email: ${link}\n\nEl enlace caduca en 30 minutos.`,
+    html: `<p>Hola ${escape(name)}, <a href="${link}">confirma tu email</a> para empezar el chat.</p>`,
+  }),
+})
+```
+
+`name` es lo que el visitante haya escrito: escápalo antes de ponerlo en HTML.

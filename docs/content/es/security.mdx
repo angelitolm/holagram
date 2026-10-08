@@ -1,0 +1,40 @@
+## Visitantes verificados
+
+- Una conversación solo existe después de que el visitante abra el enlace de su correo. El navegador no tiene forma de obtener un id de conversación (`sid`) sin él, así que la verificación no se puede saltar desde el cliente.
+- El token son 32 bytes aleatorios. Redis guarda solo su **hash SHA-256**: quien lea la base de datos no puede usar los enlaces pendientes.
+- `GETDEL` lo consume de forma atómica: el enlace funciona **una sola vez** y caduca a los 30 minutos.
+- El origen del enlace lo fija la configuración, nunca se toma del `Host` de la petición. De lo contrario, un atacante podría solicitar una verificación para el correo de otra persona con un `Host` falsificado, y la víctima recibiría un token válido que apunta al dominio del atacante.
+- La ruta de retorno debe empezar por una única `/`. Cualquier otra cosa (`//evil.com`, una URL completa) vuelve a `/`.
+
+## El id de conversación
+
+El `sid` es un UUID aleatorio. Es el único secreto que da acceso a una conversación, vive en el `localStorage` del visitante y nunca se muestra. Telegram solo ve sus seis primeros caracteres (`#a1b2c3`), suficientes para que distingas a los visitantes.
+
+## El webhook
+
+- Las peticiones sin la cabecera `X-Telegram-Bot-Api-Secret-Token` que registraste reciben `401`.
+- Solo se leen los mensajes de `TELEGRAM_CHAT_ID`. Cualquier otra persona que escriba a tu bot es ignorada.
+- Siempre responde `200` a las peticiones aceptadas, incluso con errores, para que Telegram no reintente la misma actualización durante horas.
+
+## Límites de uso
+
+Contadores en Redis, por hora:
+
+| Qué | Límite |
+| --- | --- |
+| Correos de verificación por IP | 5 |
+| Correos de verificación por dirección de correo | 3 |
+| Intentos de verificación por IP | 20 |
+| Mensajes por conversación | 40 |
+
+La IP se obtiene de `x-forwarded-for`, que Vercel y la mayoría de hostings establecen.
+
+## Entrada de datos
+
+- Nombre de hasta 100 caracteres, correo de hasta 200 (y con formato válido), tema de hasta 100, mensaje de hasta 2000. Se comprueba en el servidor.
+- Los mensajes llegan a Telegram como **texto plano**, sin `parse_mode`: un visitante no puede inyectar formato ni enlaces que parezcan tuyos.
+- El correo de verificación escapa el nombre del visitante en el HTML.
+
+## Qué se guarda y durante cuánto tiempo
+
+Nombre, correo, tema y mensajes, en tu propia base de datos de Upstash, durante 30 días tras el último mensaje. Nada va a ningún servicio que no sea tu Redis, tu chat de Telegram y Resend. Menciona el chat en tu política de privacidad.

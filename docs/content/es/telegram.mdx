@@ -1,0 +1,46 @@
+## Crea el bot
+
+1. Abre [@BotFather](https://t.me/BotFather) y envía `/newbot`.
+2. Elige un nombre y un nombre de usuario que termine en `bot`.
+3. Copia el token en `TELEGRAM_BOT_TOKEN`.
+
+## Encuentra tu chat id
+
+Un bot **no puede escribirte primero**: abre tu bot en Telegram y pulsa **Start**. Después:
+
+```bash
+npx holagram chat-id
+```
+
+Lista los chats que han escrito a tu bot. Copia el id de tu chat privado en `TELEGRAM_CHAT_ID`. La CLI lee `.env.local` y `.env` de la carpeta actual.
+
+<Callout type="warning" title="getUpdates y los webhooks no se llevan bien">
+  Telegram solo responde a `getUpdates` mientras no haya un webhook configurado. Si `chat-id` falla después de haber registrado uno, ejecuta `npx holagram webhook --delete`, luego `chat-id`, y vuelve a registrar el webhook.
+</Callout>
+
+## Registra el webhook
+
+Tus respuestas llegan a tu sitio mediante un webhook. Genera un secreto, configúralo como `TELEGRAM_WEBHOOK_SECRET` en tu hosting, despliega y registra:
+
+```bash
+npx holagram secret
+npx holagram webhook https://your-site.com
+```
+
+Esto llama a `setWebhook` con `https://your-site.com/api/holagram/webhook`, tu secreto y `allowed_updates: ["message"]`. Si tu ruta está en otro sitio, pasa la URL completa terminada en `/webhook`. `npx holagram status` muestra lo que Telegram tiene registrado: tu URL, `pending_update_count` y el último error, si lo hay.
+
+Esto se hace una vez por sitio, y de nuevo solo si cambian la URL o el secreto.
+
+## Responder a los visitantes
+
+Todo ocurre en tu chat privado con el bot:
+
+- Una conversación nueva llega como **🆕 New chat #a1b2c3** con el tema, el nombre y el correo.
+- Cada mensaje del visitante llega como **💬 #a1b2c3 · Nombre**.
+- Para contestar, **responde** a cualquiera de esos mensajes (desliza ↩️ en el móvil, o clic derecho → Responder). El `#a1b2c3` te indica de qué visitante se trata.
+- También puedes responder a tus propias respuestas anteriores en el hilo: quedan vinculadas al mismo visitante.
+- Un mensaje que no es una respuesta no se puede entregar, y el bot te lo indica.
+
+Un comando (un mensaje que empieza por `/`, como `/start`) recibe en su lugar una breve confirmación de "conectado".
+
+Las respuestas son texto plano: el formato de Telegram, las fotos y los stickers no llegan al visitante.

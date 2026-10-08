@@ -1,0 +1,38 @@
+## Layout
+
+This is a pnpm workspace:
+
+| Folder | What |
+|---|---|
+| `packages/holagram` | The library (`@angelitolm/holagram`): widget, server, CLI and unit tests |
+| `playground` | A Next app that uses the built library against real Telegram, Resend and Redis |
+| `docs` | This site |
+
+## Get started
+
+You need Node 22.18 or newer and pnpm.
+
+```bash
+pnpm install
+pnpm dev     # package watch, playground (3100) and docs (3200)
+pnpm test    # unit tests
+pnpm build   # builds the package
+```
+
+The unit tests run the whole server flow (verification, messages, the webhook, rate limits and missing configuration) against in-memory fakes of Upstash, Telegram and Resend, so they need no accounts.
+
+## The playground
+
+Copy `playground/.env.example` to `playground/.env.local` and fill it in with a test bot and database. Then `pnpm dev` and open `http://localhost:3100`. Your messages reach Telegram; to get replies back locally, expose the playground with a tunnel (for example `cloudflared tunnel --url http://localhost:3100`) and register the tunnel URL with `npx holagram webhook`.
+
+## Commits
+
+Use conventional commits: `feat:`, `fix:`, `docs:`, `test:`, `chore:`.
+
+## Docs
+
+Pages live in `docs/content/<locale>/<slug>.mdx`. Keep both locales (`en` and `es`) in sync: when you change a page, change its twin, and check that `pnpm --filter docs test` and `pnpm --filter docs build` pass.
+
+## Releasing
+
+Bump the version in `packages/holagram/package.json`, commit, and push a tag `v<version>`. The publish workflow checks that the tag matches, runs the tests, builds and publishes to npm with provenance.

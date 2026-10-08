@@ -1,0 +1,71 @@
+## 1. Instala
+
+```bash
+pnpm add @angelitolm/holagram
+```
+
+React 18 o 19 para el widget. El servidor necesita Node 20.12+ (o cualquier runtime con `fetch` y Web Crypto).
+
+## 2. Crea los servicios
+
+- **Bot de Telegram**: habla con [@BotFather](https://t.me/BotFather), envía `/newbot` y guarda el token. Después abre tu bot y pulsa **Start**. Detalles en [Telegram](./telegram).
+- **Upstash Redis**: en Vercel, *Storage → Upstash Redis → Connect* a tu proyecto; crea `KV_REST_API_URL` y `KV_REST_API_TOKEN` por ti. En cualquier otro sitio, crea una base de datos en [upstash.com](https://upstash.com) y copia su URL REST y su token.
+- **Resend**: añade tu dominio en [resend.com](https://resend.com), crea los registros DNS que te muestra y genera una API key. Detalles en [Verificación del correo](./email).
+
+## 3. Configura las variables de entorno
+
+```bash title=".env.local"
+TELEGRAM_BOT_TOKEN=123456:ABC...
+TELEGRAM_CHAT_ID=123456789
+TELEGRAM_WEBHOOK_SECRET=        # npx holagram secret
+KV_REST_API_URL=https://xxx.upstash.io
+KV_REST_API_TOKEN=...
+RESEND_API_KEY=re_...
+HOLAGRAM_EMAIL_FROM="Ana <chat@your-domain.com>"
+```
+
+Obtén tu chat id con la CLI (después de pulsar **Start** en tu bot):
+
+```bash
+npx holagram chat-id
+```
+
+`UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` también funcionan, en lugar de los nombres con `KV_`. Configura las mismas variables en tu hosting (Vercel: *Settings → Environment Variables*) y vuelve a desplegar.
+
+## 4. Añade la ruta y el widget
+
+```ts title="app/api/holagram/[action]/route.ts"
+import { createHolagram } from '@angelitolm/holagram/server'
+
+export const { GET, POST } = createHolagram({ ownerName: 'Ana' })
+```
+
+```tsx title="app/layout.tsx"
+import { Holagram } from '@angelitolm/holagram'
+
+// dentro de <body>, después de {children}
+<Holagram
+  owner={{ name: 'Ana', avatar: '/me.jpg', status: 'Normalmente respondo en unas horas' }}
+  topics={[
+    { id: 'hire', label: '💼 Quiero contratarte', intro: 'Cuéntame qué necesitas, tus plazos y un presupuesto aproximado.' },
+    { id: 'question', label: '💬 Otra pregunta' },
+    { id: 'rates', label: '💲 Tarifas', reply: 'Trabajo por horas desde 25 $/h.', links: [{ href: '/services', label: 'Servicios' }] },
+  ]}
+/>
+```
+
+El segmento dinámico debe llamarse `[action]`. Móntalo en `/api/holagram`, o pasa tu ruta al widget con `api`.
+
+## 5. Registra el webhook
+
+Despliega y luego dile a Telegram dónde enviar tus respuestas:
+
+```bash
+npx holagram webhook https://your-site.com
+```
+
+Y listo. Abre tu sitio, inicia un chat, confirma el correo y contesta desde Telegram **respondiendo** al mensaje del visitante.
+
+<Callout type="note" title="Desarrollando en local">
+  Los mensajes de tu sitio local llegan a Telegram, pero tus respuestas no pueden volver a `localhost`: Telegram solo llama a URLs públicas. Si local y producción comparten la misma base de datos Redis, las respuestas que llegan a través de producción también aparecen en tu chat local.
+</Callout>

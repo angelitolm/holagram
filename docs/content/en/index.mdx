@@ -1,0 +1,63 @@
+holagram adds a chat to your website that reaches you on **Telegram**. Visitors write their name and email, pick an option and **confirm their email** with a one-time link. From then on every message they send reaches your Telegram, you **reply** from your phone and the answer shows up in their chat, **only theirs**.
+
+## Quick look
+
+A route handler on the server:
+
+```ts title="app/api/holagram/[action]/route.ts"
+import { createHolagram } from '@angelitolm/holagram/server'
+
+export const { GET, POST } = createHolagram({ ownerName: 'Ana' })
+```
+
+The widget in your root layout:
+
+```tsx title="app/layout.tsx"
+import { Holagram } from '@angelitolm/holagram'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Holagram owner={{ name: 'Ana', status: 'Usually replies within a few hours' }} />
+      </body>
+    </html>
+  )
+}
+```
+
+Then set your environment variables and point Telegram at your site:
+
+```bash
+npx holagram webhook https://your-site.com
+```
+
+## How it works
+
+1. The visitor opens the chat, writes their **name** and **email** and picks an option. Options with a `reply` are answered right there, without bothering you.
+2. For an option that needs you, they get an **email with a one-time link** (it expires in 30 minutes).
+3. The link brings them back to your site, the chat confirms the email and **only then** the conversation opens: your Telegram gets a card with their name, email and topic.
+4. Every message they write reaches your Telegram. You **reply** to it (swipe ↩️) and the answer appears in their chat within seconds.
+
+The trick that routes each reply to the right person is small: every message the server sends you on Telegram stores `message_id → conversation`. When you reply, Telegram says which `message_id` you replied to, and that's the conversation. One bot, one private chat with you, no groups.
+
+## What you need
+
+| Service | For | Free plan |
+| --- | --- | --- |
+| A Telegram bot | Forwards messages to you and receives your replies by webhook | Yes |
+| Upstash Redis | Conversations, messages and which Telegram message belongs to whom | Yes |
+| Resend | The verification email | Yes |
+
+No SDKs: holagram talks to all three with `fetch`, so the package has **no dependencies**. The server is a plain Web `Request → Response` handler: it works in Next.js route handlers and in any runtime that speaks the same API.
+
+<Callout type="tip" title="Try it without installing">
+  The [live demo](./demo) runs the real widget on a simulated backend: go through the whole flow, verification included.
+</Callout>
+
+## Where to go next
+
+- [Getting started](./getting-started): from zero to your first reply from Telegram.
+- [The widget](./widget): topics, colors, translations and your own "Let's talk" button.
+- [Security](./security): what is verified, what is stored and the rate limits.

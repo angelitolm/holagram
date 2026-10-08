@@ -1,0 +1,46 @@
+Before a conversation opens, the visitor confirms their email with a one-time link. Without it, anyone could write to you pretending to be someone else, and you would answer an inbox they don't own.
+
+## Set up Resend
+
+1. Create an account on [resend.com](https://resend.com) and add your domain.
+2. Create the DNS records it shows (SPF, DKIM). On Cloudflare, set them to **DNS only**, not proxied.
+3. Generate an API key: `RESEND_API_KEY`.
+4. Set the sender: `HOLAGRAM_EMAIL_FROM="Ana <chat@your-domain.com>"`, on the domain you verified.
+
+## The link
+
+The link is `https://your-site.com/<page>?holagram_token=…`. The visitor comes back to the page where they started the chat; the widget removes the token from the URL, verifies it and opens the conversation. The link expires in **30 minutes** and works **once**.
+
+The origin of the link is fixed, never taken from the request's `Host` header. It comes from, in order:
+
+1. `siteUrl` in `createHolagram()`.
+2. The `SITE_URL` environment variable.
+3. `https://` + `VERCEL_PROJECT_PRODUCTION_URL` (set by Vercel).
+4. `http://localhost:` + `PORT` (3000 by default), for local development.
+
+<Callout type="warning" title="Preview deployments">
+  On a Vercel preview the link points to your production domain (step 3). Set `SITE_URL` for previews if you test the flow there.
+</Callout>
+
+If the visitor opens the link in another tab of the same browser, the chat in the original tab follows along (the conversation lives in `localStorage`). On another device, the conversation opens on that device.
+
+## Customize the email
+
+The default email is short and in English. Pass `email` to write your own:
+
+```ts title="app/api/holagram/[action]/route.ts"
+import { createHolagram } from '@angelitolm/holagram/server'
+
+const escape = (v: string) => v.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+
+export const { GET, POST } = createHolagram({
+  ownerName: 'Ana',
+  email: ({ name, link, ownerName }) => ({
+    subject: `Confirma tu email para hablar con ${ownerName}`,
+    text: `Hola ${name}, confirma tu email: ${link}\n\nEl enlace caduca en 30 minutos.`,
+    html: `<p>Hola ${escape(name)}, <a href="${link}">confirma tu email</a> para empezar el chat.</p>`,
+  }),
+})
+```
+
+`name` is whatever the visitor typed: escape it before putting it in HTML.

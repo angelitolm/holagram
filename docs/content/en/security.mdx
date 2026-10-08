@@ -1,0 +1,40 @@
+## Verified visitors
+
+- A conversation only exists after the visitor opens the link in their email. The browser has no way to get a conversation id (`sid`) without it, so verification can't be skipped from the client.
+- The token is 32 random bytes. Redis stores only its **SHA-256 hash**: whoever reads the database can't use pending links.
+- `GETDEL` consumes it atomically: the link works **once**, and expires after 30 minutes.
+- The link's origin is fixed by configuration, never taken from the request's `Host`. Otherwise an attacker could request a verification for someone else's email with a forged `Host`, and the victim would receive a valid token pointing to the attacker's domain.
+- The return path must start with a single `/`. Anything else (`//evil.com`, a full URL) falls back to `/`.
+
+## The conversation id
+
+The `sid` is a random UUID. It is the only secret that gives access to a conversation, it lives in the visitor's `localStorage` and is never shown. Telegram only sees its first six characters (`#a1b2c3`), enough for you to tell visitors apart.
+
+## The webhook
+
+- Requests without the `X-Telegram-Bot-Api-Secret-Token` header you registered get `401`.
+- Only messages from `TELEGRAM_CHAT_ID` are read. Anyone else writing to your bot is ignored.
+- It always answers `200` to accepted requests, even on errors, so Telegram doesn't retry the same update for hours.
+
+## Rate limits
+
+Counters in Redis, per hour:
+
+| What | Limit |
+| --- | --- |
+| Verification emails per IP | 5 |
+| Verification emails per email address | 3 |
+| Verification attempts per IP | 20 |
+| Messages per conversation | 40 |
+
+The IP comes from `x-forwarded-for`, which Vercel and most hosts set.
+
+## Input
+
+- Name up to 100 characters, email up to 200 (and a valid format), topic up to 100, message up to 2000. Checked on the server.
+- Messages go to Telegram as **plain text**, without `parse_mode`: a visitor can't inject formatting or links that look like yours.
+- The verification email escapes the visitor's name in the HTML.
+
+## What is stored, and for how long
+
+Name, email, topic and messages, in your own Upstash database, for 30 days after the last message. Nothing goes to any service other than your Redis, your Telegram chat and Resend. Mention the chat in your privacy policy.

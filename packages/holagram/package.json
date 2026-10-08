@@ -1,0 +1,68 @@
+{
+  "name": "@angelitolm/holagram",
+  "version": "0.1.0",
+  "description": "A chat widget for your website that reaches you on Telegram: email verification with Resend, replies routed back to each visitor, state in Upstash Redis",
+  "keywords": ["telegram", "chat", "chat-widget", "live-chat", "contact", "nextjs", "react", "resend", "upstash", "redis", "bot", "webhook", "email-verification"],
+  "author": "Angel Labrada Massó",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/angelitolm/holagram.git",
+    "directory": "packages/holagram"
+  },
+  "homepage": "https://holagram.angellm.dev",
+  "bugs": "https://github.com/angelitolm/holagram/issues",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "default": "./dist/server.js"
+    },
+    "./demo": {
+      "types": "./dist/Demo.d.ts",
+      "import": "./dist/Demo.js",
+      "default": "./dist/Demo.js"
+    }
+  },
+  "bin": {
+    "holagram": "./dist/cli.js"
+  },
+  "files": ["dist", "README.md", "logo.svg"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "node --test src/server.test.ts",
+    "typecheck": "tsc --noEmit",
+    "prepack": "node -e \"require('node:fs').copyFileSync('../../README.md','README.md');require('node:fs').copyFileSync('../../LICENSE','LICENSE')\""
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "react": "^19",
+    "react-dom": "^19",
+    "tsup": "^8",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
